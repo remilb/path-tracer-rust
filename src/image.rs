@@ -1,16 +1,38 @@
+use std::convert::TryInto;
+
 pub struct Image {
-    pub w: u32,
-    pub h: u32,
+    w: u32,
+    h: u32,
+    //TODO: Get rid of this pub
     pub buf: Vec<u8>,
 }
 
 impl Image {
-    pub fn new() -> Image {
+    pub fn new(w: u32, h: u32) -> Image {
         Image {
-            w: 0,
-            h: 0,
-            buf: vec![],
+            w,
+            h,
+            buf: vec![0; (w * h * 3).try_into().unwrap()],
         }
+    }
+
+    pub fn w(&self) -> u32 {
+        self.w
+    }
+
+    pub fn h(&self) -> u32 {
+        self.h
+    }
+
+    pub fn set_pixel(&mut self, x: u32, y: u32, r: u8, g: u8, b: u8) {
+        let index = self.get_index(x, y);
+        self.buf[index] = r;
+        self.buf[index + 1] = g;
+        self.buf[index + 2] = b;
+    }
+
+    fn get_index(&self, x: u32, y: u32) -> usize {
+        (self.w * 3 * y + x * 3).try_into().unwrap()
     }
 
     pub fn new_test_image(w: u32, h: u32) -> Image {

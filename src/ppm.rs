@@ -3,7 +3,7 @@ use std::fs;
 use crate::image::Image;
 
 pub fn write_ppm(path: &str, img: Image) -> std::io::Result<()> {
-    let header = format!("P3\n{} {}\n255\n", img.w, img.h);
+    let header = format!("P3\n{} {}\n255\n", img.w(), img.h());
     let data: String = img
         .buf
         .iter()
