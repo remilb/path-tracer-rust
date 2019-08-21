@@ -1,4 +1,5 @@
 use crate::vec3::Vec3;
+use std::option::Option;
 //use assert_approx_eq::assert_approx_eq;
 
 #[derive(Debug, Clone, Copy)]
@@ -8,20 +9,36 @@ pub struct Ray {
 }
 
 impl Ray {
-    fn new(origin: Vec3, dir: Vec3) -> Ray {
+    pub fn new(origin: Vec3, dir: Vec3) -> Ray {
         Ray {
             origin,
             dir: Vec3::normalize(dir),
         }
     }
 
-    fn position_at_time(&self, t: f32) -> Vec3 {
+    pub fn origin(&self) -> Vec3 {
+        self.origin
+    }
+
+    pub fn dir(&self) -> Vec3 {
+        self.dir
+    }
+
+    pub fn position_at_time(&self, t: f32) -> Vec3 {
         self.origin + self.dir * t
     }
 }
 
-trait Collider {
-    fn get_intersection_point(r: Ray) -> Vec3;
+// Dumb struct for handling collisions
+pub struct Collision {
+    pub point: Vec3,
+    pub normal: Vec3,
+    pub t: f32,
+}
+
+// It will be the responsibility of the implementor to return the single relevant collision point if multiple are found
+pub trait Collider {
+    fn get_collision(&self, r: Ray) -> Option<Collision>;
 }
 
 // #[cfg(test)]

@@ -1,10 +1,11 @@
-use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
+//TODO: pub is sloppy methinks
 pub struct Vec3 {
-    x: f32,
-    y: f32,
-    z: f32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl Vec3 {
@@ -12,7 +13,15 @@ impl Vec3 {
         Vec3 { x, y, z }
     }
 
-    pub fn unit() -> Vec3 {
+    pub fn zeros() -> Vec3 {
+        Vec3 {
+            x: 0.,
+            y: 0.,
+            z: 0.,
+        }
+    }
+
+    pub fn ones() -> Vec3 {
         Vec3 {
             x: 1.0,
             y: 1.0,
@@ -42,6 +51,16 @@ impl Vec3 {
 
     pub fn normalize(v: Vec3) -> Vec3 {
         v / Vec3::len(v)
+    }
+
+    pub fn lerp(v1: Vec3, v2: Vec3, t: f32) -> Vec3 {
+        if t < 0. || t > 1. {
+            panic!(format!(
+                "t in lerp should be in [0.0, 1.0], value was {}",
+                t
+            ))
+        }
+        (1.0 - t) * v1 + t * v2
     }
 }
 
@@ -98,6 +117,17 @@ impl Mul<Vec3> for f32 {
 
     fn mul(self, rhs: Vec3) -> Vec3 {
         rhs * self
+    }
+}
+
+impl Mul<Vec3> for Vec3 {
+    type Output = Vec3;
+    fn mul(self, rhs: Vec3) -> Vec3 {
+        Vec3 {
+            x: self.x * rhs.x,
+            y: self.y * rhs.y,
+            z: self.z * rhs.z,
+        }
     }
 }
 
