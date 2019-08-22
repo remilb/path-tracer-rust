@@ -38,7 +38,7 @@ pub struct Collision {
 
 // It will be the responsibility of the implementor to return the single relevant collision point if multiple are found
 pub trait Collider {
-    fn get_collision(&self, r: Ray) -> Option<Collision>;
+    fn get_collision(&self, r: Ray, t_min: f32, t_max: f32) -> Option<Collision>;
 }
 
 // #[cfg(test)]

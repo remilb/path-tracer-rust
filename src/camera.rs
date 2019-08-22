@@ -1,3 +1,4 @@
+use crate::ray::Ray;
 use crate::vec3::Vec3;
 
 //Probably useful initially to be able to specify width and height of
@@ -10,6 +11,7 @@ pub struct Camera {
     pub w: f32,
     pub h: f32,
     f_len: f32,
+    corners: (Vec3, Vec3, Vec3, Vec3),
 }
 
 impl Camera {
@@ -21,6 +23,7 @@ impl Camera {
             w,
             h,
             f_len,
+            corners: Camera::projection_corners(pos, up, dir, w, h, f_len),
         }
     }
 
@@ -29,23 +32,36 @@ impl Camera {
     }
 
     pub fn default_camera() -> Camera {
-        Camera {
-            pos: Vec3::zeros(),
-            dir: Vec3::new(0., 0., -1.),
-            up: Vec3::new(0., 1., 0.),
-            w: 4.,
-            h: 2.,
-            f_len: 1.,
-        }
+        Camera::new(
+            Vec3::zeros(),
+            Vec3::new(0., 0., -1.),
+            Vec3::new(0., 1., 0.),
+            4.,
+            2.,
+            2.,
+        )
+    }
+
+    pub fn cast_ray(&self, u: f32, v: f32) -> Ray {
+        let (ul, _ur, lr, ll) = self.corners;
+        let (hor, vert) = (lr - ll, ul - ll);
+        Ray::new(self.pos, ll + u * hor + v * vert - self.pos)
     }
 
     //TODO: This is super brittle right now, up and dir are only orthogonal by construction.
     //I'll get back to it with a more general transform system and all that jazz
-    pub fn corners(&self) -> (Vec3, Vec3, Vec3, Vec3) {
-        let right = Vec3::normalize(Vec3::cross(self.up, -self.dir));
-        let half_diagonal_up = (self.w / 2.) * right + (self.h / 2.) * self.up;
-        let half_diagonal_down = (self.w / 2.) * right + (self.h / 2.) * -self.up;
-        let center = self.pos + self.dir * self.f_len;
+    fn projection_corners(
+        pos: Vec3,
+        up: Vec3,
+        dir: Vec3,
+        w: f32,
+        h: f32,
+        f_len: f32,
+    ) -> (Vec3, Vec3, Vec3, Vec3) {
+        let right = Vec3::normalize(Vec3::cross(up, -dir));
+        let half_diagonal_up = (w / 2.) * right + (h / 2.) * up;
+        let half_diagonal_down = (w / 2.) * right + (h / 2.) * -up;
+        let center = pos + dir * f_len;
         let upper_left = center - half_diagonal_down;
         let upper_right = center + half_diagonal_up;
         let lower_right = center + half_diagonal_down;

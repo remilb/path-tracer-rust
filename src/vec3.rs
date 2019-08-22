@@ -53,6 +53,10 @@ impl Vec3 {
         v / Vec3::len(v)
     }
 
+    pub fn dist(v1: Vec3, v2: Vec3) -> f32 {
+        Vec3::len(v2 - v1)
+    }
+
     pub fn lerp(v1: Vec3, v2: Vec3, t: f32) -> Vec3 {
         if t < 0. || t > 1. {
             panic!(format!(
