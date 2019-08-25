@@ -1,5 +1,6 @@
 use crate::camera::Camera;
 use crate::image::Image;
+use crate::materials::Shader;
 use crate::ray::{Collider, Ray};
 use crate::scene::Scene;
 use crate::vec3::Vec3;
@@ -14,7 +15,7 @@ impl RayTracer {
         RayTracer { camera }
     }
     pub fn render(&self) -> Image {
-        let scene = Scene::default_scene();
+        let scene = Scene::random_scene();
         let (nx, ny) = (2160, 1080);
         let ns = 100;
         let mut img = Image::new(nx, ny);
@@ -36,32 +37,23 @@ impl RayTracer {
         img
     }
 
-    //TODO: Background doesn't really look how I'd like due to unit rays
     fn color(&self, ray: Ray, scene: &Scene) -> Vec3 {
         // Check objects in scene
         if let Some(collision) = scene.get_collision(ray, 0.001, std::f32::MAX) {
-            let out_ray = Ray::new(
-                collision.point,
-                (collision.point + collision.normal + RayTracer::random_point_in_unit_sphere())
-                    - collision.point,
-            );
-            //return 0.5 * (collision.normal + Vec3::new(1., 1., 1.));
-            return 0.5 * self.color(out_ray, scene);
+            let shader_res = collision.mat.shade(ray, collision.point, collision.normal);
+            if let Some(res) = shader_res {
+                //return 0.5 * (collision.normal + Vec3::new(1., 1., 1.));
+                return res.attenuation * self.color(res.out_ray, scene);
+            } else {
+                //Absorbed
+                return Vec3::zeros();
+            }
         } else {
             // Or return skybox
             let white = Vec3::new(1.0, 1.0, 1.0);
             let blue = Vec3::new(0.5, 0.7, 1.0);
-            let t = (ray.dir().y + (self.camera.h / 2.)) / self.camera.h;
+            let t = 0.5 * (ray.dir().y + 1.0);
             Vec3::lerp(white, blue, t)
-        }
-    }
-
-    fn random_point_in_unit_sphere() -> Vec3 {
-        loop {
-            let p = 2.0 * Vec3::new(random(), random(), random()) - Vec3::ones();
-            if Vec3::squared_len(p) < 1.0 {
-                return p;
-            }
         }
     }
 }

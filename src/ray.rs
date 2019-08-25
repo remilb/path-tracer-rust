@@ -1,4 +1,5 @@
 use crate::vec3::Vec3;
+use crate::materials::Material;
 use std::option::Option;
 //use assert_approx_eq::assert_approx_eq;
 
@@ -34,6 +35,7 @@ pub struct Collision {
     pub point: Vec3,
     pub normal: Vec3,
     pub t: f32,
+    pub mat: Material,
 }
 
 // It will be the responsibility of the implementor to return the single relevant collision point if multiple are found

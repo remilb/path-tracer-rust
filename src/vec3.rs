@@ -57,13 +57,11 @@ impl Vec3 {
         Vec3::len(v2 - v1)
     }
 
+    pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+        v - 2.0 * Vec3::dot(v, n) * n
+    }
+
     pub fn lerp(v1: Vec3, v2: Vec3, t: f32) -> Vec3 {
-        if t < 0. || t > 1. {
-            panic!(format!(
-                "t in lerp should be in [0.0, 1.0], value was {}",
-                t
-            ))
-        }
         (1.0 - t) * v1 + t * v2
     }
 }

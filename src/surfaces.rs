@@ -1,7 +1,8 @@
 use crate::ray::{Collider, Collision, Ray};
 use crate::vec3::Vec3;
+use crate::materials::{Material, Lambert};
 
-//TODO: This is kind of ugly boilerplate-y right now but apparently this is how to do it
+//TODO: This is kind of ugly boilerplate-y right now but apparently this is a reasonable way to do it
 pub enum Surface {
     Sphere(Sphere),
     Plane(Plane),
@@ -18,10 +19,11 @@ impl Collider for Surface {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub struct Sphere {
     pub center: Vec3,
     pub r: f32,
+    pub mat: Material,
 }
 
 impl Collider for Sphere {
@@ -41,16 +43,17 @@ impl Collider for Sphere {
             } else {
                 let point = r.position_at_time(t);
                 let normal = Vec3::normalize(point - self.center);
-                Some(Collision { point, normal, t })
+                Some(Collision { mat: self.mat, point, normal, t })
             }
         }
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub struct Plane {
     origin: Vec3,
     normal: Vec3,
+    pub mat: Material,
 }
 
 impl Collider for Plane {
@@ -61,6 +64,7 @@ impl Collider for Plane {
         } else {
             let point = r.position_at_time(t);
             Some(Collision {
+                mat: self.mat,
                 point,
                 normal: self.normal,
                 t,
@@ -69,7 +73,7 @@ impl Collider for Plane {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub struct Parallelogram {
     origin: Vec3,
     normal: Vec3,
@@ -81,10 +85,11 @@ pub struct Parallelogram {
     u_dot_v: f32,
     v_dot_v: f32,
     det: f32,
+    pub mat: Material,
 }
 
 impl Parallelogram {
-    pub fn new(origin: Vec3, u: Vec3, v: Vec3) -> Parallelogram {
+    pub fn new(origin: Vec3, u: Vec3, v: Vec3, mat: Material) -> Parallelogram {
         let normal = Vec3::normalize(Vec3::cross(u, v));
         let (u_len, v_len) = (Vec3::len(u), Vec3::len(v));
         let (u_dot_u, u_dot_v, v_dot_v) = (Vec3::dot(u, u), Vec3::dot(u, v), Vec3::dot(v, v));
@@ -100,6 +105,7 @@ impl Parallelogram {
             u_dot_v,
             v_dot_v,
             det,
+            mat
         }
     }
 }
@@ -117,6 +123,7 @@ impl Collider for Parallelogram {
         let w2 = (-self.u_dot_v * u_dot_rhs + self.u_dot_u * v_dot_rhs) / self.det;
         if 0. <= w1 && w1 <= 1. && 0. <= w2 && w2 <= 1. {
             Some(Collision {
+                mat: self.mat,
                 point,
                 normal: self.normal,
                 t,

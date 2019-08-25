@@ -2,6 +2,7 @@ mod camera;
 mod image;
 mod scene;
 mod surfaces;
+mod materials;
 mod ppm;
 mod ray;
 mod ray_tracer;
