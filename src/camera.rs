@@ -71,24 +71,3 @@ impl Camera {
         }
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    fn camera_corners() {
-        // Trivial case with axis-aligned projection plane
-        let pos = Vec3::zeros();
-        let dir = Vec3::new(0., 0., -1.);
-        let up = Vec3::new(0., 1., 0.);
-        let c = Camera::new(pos, dir, up, 4., 2., 2.);
-        let corners = c.corners();
-        assert_eq!(corners, (Vec3::new(-2., -1., -2.), Vec3::new(2., 1., -2.)));
-
-        // Case with axis-unaligned projection plane
-        // let dir = Vec3::new(1., 0., -1.);
-        // let c = Camera::new(pos, dir, up, 4., 2., 2.);
-        // let corners = c.corners();
-        // assert_eq!(corners, (Vec3::new(-2., -1., -2.), Vec3::new(2., 1., -2.)));
-    }
-}
