@@ -1,11 +1,12 @@
 mod camera;
+mod geometry;
 mod image;
-mod scene;
-mod surfaces;
 mod materials;
 mod ppm;
 mod ray;
 mod ray_tracer;
+mod scene;
+mod surfaces;
 mod vec3;
 
 use camera::Camera;
