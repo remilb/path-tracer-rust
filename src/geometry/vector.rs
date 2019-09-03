@@ -1,6 +1,6 @@
-use super::{FloatRT, Scalar};
-use super::point::{Point3, Point2};
 use super::normal::Normal3;
+use super::point::{Point2, Point3};
+use super::{Cross, Dot, FloatRT, Scalar};
 use assert_approx_eq::assert_approx_eq;
 use num_traits::{Float, Num, NumCast, PrimInt, Signed};
 use std::ops::{Add, Div, Index, Mul, Neg, Sub};
@@ -76,22 +76,6 @@ impl<T: Scalar> Vec3<T> {
         self.length_squared().sqrt()
     }
 
-    pub fn dot(v1: Vec3<T>, v2: Vec3<T>) -> T {
-        v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
-    }
-
-    pub fn cross(v1: Vec3<T>, v2: Vec3<T>) -> Vec3<T> {
-        // Lift to double to prevent catastrophic cancellation, as per PBRT
-        let v1: Vec3<f64> = v1.cast();
-        let v2: Vec3<f64> = v2.cast();
-        Vec3::new(
-            v1.y * v2.z - v1.z * v2.y,
-            v1.z * v2.x - v1.x * v2.z,
-            v1.x * v2.y - v1.y * v2.x,
-        )
-        .cast()
-    }
-
     pub fn normalize(self) -> Vec3<T> {
         self / T::from(self.length()).unwrap()
     }
@@ -102,10 +86,6 @@ impl<T: Scalar> Vec3<T> {
 
     pub fn abs(self) -> Self {
         Self::new(self.x.abs(), self.y.abs(), self.z.abs())
-    }
-
-    pub fn abs_dot(v1: Self, v2: Self) -> T {
-        Self::dot(v1, v2).abs()
     }
 
     //Component wise max
@@ -158,14 +138,6 @@ impl<T: Scalar> Vec3<T> {
             (v, v2, v3)
         }
     }
-
-    // pub fn reflect(v: Vec3<T>, n: Vec3<T>) -> Vec3<T> {
-    //     v - n * 2.0 * Vec3::dot(v, n)
-    // }
-
-    // pub fn lerp(v1: Vec3<T>, v2: Vec3<T>, t: f32) -> Vec3<T> {
-    //     v1 * (1.0 - t)  + v2 * t
-    // }
 }
 
 //Convert a Point3 to a Vec3
@@ -175,9 +147,91 @@ impl<T: Scalar> From<Point3<T>> for Vec3<T> {
     }
 }
 
+// Dot products
+impl<T: Scalar> Dot for Vec3<T> {
+    type Output = T;
+    fn dot(v1: Self, v2: Self) -> T {
+        v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
+    }
+
+    fn abs_dot(v1: Self, v2: Self) -> T {
+        Self::dot(v1, v2).abs()
+    }
+
+    fn face_forward(self, v: Self) -> Self {
+        if Self::dot(self, v) < T::zero() {
+            -self
+        } else {
+            self
+        }
+    }
+}
+
+impl<T: Scalar> Dot<Normal3<T>> for Vec3<T> {
+    type Output = T;
+    fn dot(v1: Self, n2: Normal3<T>) -> T {
+        v1.x * n2.x + v1.y * n2.y + v1.z * n2.z
+    }
+
+    fn abs_dot(v1: Self, n2: Normal3<T>) -> T {
+        Self::dot(v1, n2).abs()
+    }
+
+    fn face_forward(self, v: Normal3<T>) -> Self {
+        if Self::dot(self, v) < T::zero() {
+            -self
+        } else {
+            self
+        }
+    }
+}
+
 impl<T: Scalar> From<Normal3<T>> for Vec3<T> {
     fn from(p: Normal3<T>) -> Self {
         Self::new(p.x, p.y, p.z)
+    }
+}
+
+// Cross products
+impl<T: Scalar> Cross for Vec3<T> {
+    fn cross(v1: Self, v2: Self) -> Self {
+        // Lift to double to prevent catastrophic cancellation, as per PBRT
+        let v1: Vec3<f64> = v1.cast();
+        let v2: Vec3<f64> = v2.cast();
+        Vec3::new(
+            v1.y * v2.z - v1.z * v2.y,
+            v1.z * v2.x - v1.x * v2.z,
+            v1.x * v2.y - v1.y * v2.x,
+        )
+        .cast()
+    }
+}
+
+impl<T: Scalar> Cross<Vec3<T>, Normal3<T>> for Vec3<T> {
+    fn cross(v1: Self, v2: Normal3<T>) -> Self {
+        // Lift to double to prevent catastrophic cancellation, as per PBRT
+        let v1: Vec3<f64> = v1.cast();
+        let v2: Normal3<f64> = v2.cast();
+        Vec3::new(
+            v1.y * v2.z - v1.z * v2.y,
+            v1.z * v2.x - v1.x * v2.z,
+            v1.x * v2.y - v1.y * v2.x,
+        )
+        .cast()
+    }
+}
+
+impl<T: Scalar> Cross<Normal3<T>, Vec3<T>> for Vec3<T> {
+    fn cross(v1: Normal3<T>, v2: Self) -> Self {
+        // Lift to double to prevent catastrophic cancellation, as per PBRT
+        let v1: Normal3<f64> = v1.cast();
+        let v2: Vec3<f64> = v2.cast();
+        Vec3::new(
+            v1.y * v2.z - v1.z * v2.y,
+            v1.z * v2.x - v1.x * v2.z,
+            v1.x * v2.y - v1.y * v2.x,
+        )
+        .cast()
     }
 }
 
@@ -352,14 +406,6 @@ impl<T: Scalar> Vec2<T> {
     pub fn permute(self, x: usize, y: usize) -> Self {
         Self::new(self[x], self[y])
     }
-
-    // pub fn reflect(v: Vec2<T>, n: Vec2<T>) -> Vec2<T> {
-    //     v - n * 2.0 * Vec2::dot(v, n)
-    // }
-
-    // pub fn lerp(v1: Vec2<T>, v2: Vec2<T>, t: f32) -> Vec2<T> {
-    //     v1 * (1.0 - t)  + v2 * t
-    // }
 }
 
 //Convert a Point2 to a Vec2

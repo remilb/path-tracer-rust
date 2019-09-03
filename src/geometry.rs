@@ -6,6 +6,19 @@ use num_traits::{NumCast, Signed};
 
 type FloatRT = f32;
 
+// Dot product trait allows for dot between various types (Vec3, Normal3)
+pub trait Dot<RHS = Self> {
+    type Output;
+    fn dot(v1: Self, v2: RHS) -> Self::Output;
+    fn abs_dot(v1: Self, v2: RHS) -> Self::Output;
+    fn face_forward(self, vs: RHS) -> Self;
+}
+
+// Cross product trait allows for dot between various types (Vec3, Normal3)
+pub trait Cross<LHS = Self, RHS = Self> {
+    fn cross(v1: LHS, v2: RHS) -> Self;
+}
+
 // Want to unify integer and floats in a single bound for generics
 // Mostly for NaN checks at the moment
 // TODO: Look for a more elegant way to deal with all these float/int incongruities
