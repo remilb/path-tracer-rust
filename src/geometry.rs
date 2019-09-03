@@ -1,3 +1,4 @@
+mod bounds;
 mod normal;
 mod point;
 mod ray;

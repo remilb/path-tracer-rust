@@ -3,7 +3,7 @@ use super::FloatRT;
 use super::Scalar;
 use assert_approx_eq::assert_approx_eq;
 use num_traits::{Float, Num, NumCast, PrimInt, Signed};
-use std::ops::{Add, Index, Mul, Sub};
+use std::ops::{Add, Index, Mul, Div, Sub};
 
 // Convenience aliases
 pub type Point3f = Point3<FloatRT>;
@@ -69,7 +69,7 @@ impl<T: Scalar> Point3<T> {
         (Point3::lift_to_float(p1) * (1.0 - t) + Point3::lift_to_float(p2) * t).cast()
     }
 
-    fn lift_to_float(p: Point3<T>) -> Point3<FloatRT> {
+    pub fn lift_to_float(p: Point3<T>) -> Point3<FloatRT> {
         Point3 {
             x: NumCast::from(p.x).unwrap(),
             y: NumCast::from(p.y).unwrap(),
@@ -83,6 +83,15 @@ impl<T: Scalar> Point3<T> {
             x: p1.x.max(p2.x),
             y: p1.y.max(p2.y),
             z: p1.z.max(p2.z),
+        }
+    }
+
+    //Component wise min
+    pub fn min(p1: Point3<T>, p2: Point3<T>) -> Point3<T> {
+        Self {
+            x: p1.x.min(p2.x),
+            y: p1.y.min(p2.y),
+            z: p1.z.min(p2.z),
         }
     }
 
@@ -177,6 +186,14 @@ where
         Self::new(self.x * rhs, self.y * rhs, self.z * rhs)
     }
 }
+
+impl<T: Scalar> Div<T> for Point3<T> {
+    type Output = Self;
+    fn div(self, rhs: T) -> Self {
+        Self::new(self.x/rhs, self.y/rhs, self.z/rhs)
+    }
+}
+
 //Subtract a point3 from a point3
 impl<T> Sub for Point3<T>
 where
@@ -226,7 +243,7 @@ impl<T: Scalar> Point2<T> {
         (Point2::lift_to_float(p1) * (1.0 - t) + Point2::lift_to_float(p2) * t).cast()
     }
 
-    fn lift_to_float(p: Point2<T>) -> Point2<FloatRT> {
+    pub fn lift_to_float(p: Point2<T>) -> Point2<FloatRT> {
         Point2 {
             x: NumCast::from(p.x).unwrap(),
             y: NumCast::from(p.y).unwrap(),
@@ -238,6 +255,14 @@ impl<T: Scalar> Point2<T> {
         Self {
             x: p1.x.max(p2.x),
             y: p1.y.max(p2.y),
+        }
+    }
+
+    //Component wise min
+    pub fn min(p1: Point2<T>, p2: Point2<T>) -> Point2<T> {
+        Self {
+            x: p1.x.min(p2.x),
+            y: p1.y.min(p2.y),
         }
     }
 
@@ -327,6 +352,14 @@ where
         Self::new(self.x * rhs, self.y * rhs)
     }
 }
+
+impl<T: Scalar> Div<T> for Point2<T> {
+    type Output = Self;
+    fn div(self, rhs: T) -> Self {
+        Self::new(self.x/rhs, self.y/rhs)
+    }
+}
+
 //Subtract a Point2 from a Point2
 impl<T> Sub for Point2<T>
 where
@@ -465,6 +498,21 @@ mod test {
 
         let p1 = point2i(2, 3);
         assert_eq!(p1 * 2, point2i(4, 6));
+    }
+
+    #[test]
+    fn point_div_by_scalar() {
+        let p1 = point3f(10.0, 8.0, 4.0);
+        assert_eq!(p1/2.0, point3f(5.0, 4.0, 2.0));
+
+        let p1 = point3i(2, 3, 4);
+        assert_eq!(p1/2, point3i(1, 1, 2));
+
+        let p1 = point2f(4.0, 6.0);
+        assert_eq!(p1/2.0, point2f(2.0, 3.0));
+
+        let p1 = point2i(2, 3);
+        assert_eq!(p1/2, point2i(1, 1));
     }
 
     #[test]
