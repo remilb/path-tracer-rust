@@ -6,10 +6,10 @@ use num_traits::{Float, Num, NumCast, PrimInt, Signed};
 use std::ops::{Add, Index, Mul, Sub};
 
 // Convenience aliases
-type Point3f = Point3<FloatRT>;
-type Point3i = Point3<i32>;
-type Point2f = Point2<FloatRT>;
-type Point2i = Point2<i32>;
+pub type Point3f = Point3<FloatRT>;
+pub type Point3i = Point3<i32>;
+pub type Point2f = Point2<FloatRT>;
+pub type Point2i = Point2<i32>;
 
 // Convenience factories
 pub fn point3f(x: FloatRT, y: FloatRT, z: FloatRT) -> Point3f {

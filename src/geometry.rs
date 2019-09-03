@@ -1,10 +1,12 @@
 mod normal;
 mod point;
+mod ray;
 mod vector;
 
 use num_traits::{NumCast, Signed};
 
 type FloatRT = f32;
+const INFINITY: FloatRT = std::f32::INFINITY;
 
 // Dot product trait allows for dot between various types (Vec3, Normal3)
 pub trait Dot<RHS = Self> {

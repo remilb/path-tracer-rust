@@ -8,10 +8,10 @@ use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 // Switching this alias between f32 and f64 will switch precision of all vector math
 
 // Convenience aliases
-type Vec3f = Vec3<FloatRT>;
-type Vec3i = Vec3<i32>;
-type Vec2f = Vec2<FloatRT>;
-type Vec2i = Vec2<i32>;
+pub type Vec3f = Vec3<FloatRT>;
+pub type Vec3i = Vec3<i32>;
+pub type Vec2f = Vec2<FloatRT>;
+pub type Vec2i = Vec2<i32>;
 
 // Convenience factories
 pub fn vec3f(x: FloatRT, y: FloatRT, z: FloatRT) -> Vec3f {
