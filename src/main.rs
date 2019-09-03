@@ -8,6 +8,7 @@ mod ray_tracer;
 mod scene;
 mod surfaces;
 mod vec3;
+mod utils;
 
 use camera::Camera;
 use ray_tracer::RayTracer;
