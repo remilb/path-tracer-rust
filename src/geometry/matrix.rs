@@ -2,7 +2,7 @@ use super::FloatRT;
 use std::ops::Mul;
 
 #[derive(Debug, Clone, PartialEq)]
-struct Matrix4X4 {
+pub struct Matrix4X4 {
     pub m: [[FloatRT; 4]; 4],
 }
 
