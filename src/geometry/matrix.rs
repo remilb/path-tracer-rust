@@ -101,7 +101,7 @@ impl Matrix4X4 {
         max_idx
     }
 
-    // Add s*r1 to r2 in place
+    /// Add s*r1 to r2 in place
     fn add_row(mat: &mut Matrix4X4, s: FloatRT, r1: usize, r2: usize) -> () {
         for i in 0..4 {
             mat.m[r2][i] += mat.m[r1][i] * s;
@@ -155,9 +155,9 @@ impl Mul for Matrix4X4 {
     }
 }
 
-impl Mul for &Matrix4X4 {
+impl<'a, 'b> Mul<&'b Matrix4X4> for &'a Matrix4X4 {
     type Output = Matrix4X4;
-    fn mul(self, rhs: Self) -> Self::Output {
+    fn mul(self, rhs: &'b Matrix4X4) -> Self::Output {
         let mut out = Matrix4X4::default();
         for i in 0..4 {
             for j in 0..4 {
