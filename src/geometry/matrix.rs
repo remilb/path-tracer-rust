@@ -179,21 +179,12 @@ impl<'a, 'b> Mul<&'b Matrix4X4> for &'a Matrix4X4 {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
-    use approx::{AbsDiffEq, RelativeEq, UlpsEq};
-    use assert_approx_eq::assert_approx_eq;
-
-    fn assert_matrix_approx_equal(m1: &Matrix4X4, m2: &Matrix4X4) {
-        for i in 0..4 {
-            for j in 0..4 {
-                assert_approx_eq!(m1.m[i][j], m2.m[i][j]);
-            }
-        }
-    }
+    use approx::{assert_relative_eq, AbsDiffEq, RelativeEq, UlpsEq};
 
     #[test]
-    fn matrix_default() {
+    fn default() {
         let m = Matrix4X4::default();
         assert_eq!(m.m[0][0], 1.0);
         assert_eq!(m.m[1][1], 1.0);
@@ -202,14 +193,14 @@ mod test {
     }
 
     #[test]
-    fn matrix_equals() {
+    fn equals() {
         let m1 = Matrix4X4::default();
         let m2 = Matrix4X4::default();
         assert_eq!(m1, m2);
     }
 
     #[test]
-    fn matrix_multiply() {
+    fn multiply() {
         let m1 = Matrix4X4::from_rows(
             [1., 3., 4., 2.],
             [2., 3., -2., 5.],
@@ -233,7 +224,7 @@ mod test {
     }
 
     #[test]
-    fn matrix_inverse_find_pivot() {
+    fn inverse_find_pivot() {
         let m = Matrix4X4::from([
             [2.0, 3.0, 4.0, 3.0],
             [1.2, 3.4, -4.3, 11.9],
@@ -262,7 +253,7 @@ mod test {
         assert_eq!(pivot, 3);
     }
     #[test]
-    fn matrix_inverse_add_rows() {
+    fn inverse_add_rows() {
         let mut m = Matrix4X4::from([
             [2.0, 3.0, 4.0, 3.0],
             [1.2, 3.4, -4.3, 11.9],
@@ -276,18 +267,18 @@ mod test {
             [12.0, -3.4, 2.3, 5.6],
         ]);
         Matrix4X4::add_row(&mut m, 2.0, 0, 1);
-        assert_matrix_approx_equal(&m, &result);
+        assert_relative_eq!(m, result);
     }
 
     #[test]
-    fn matrix_inverse() {
+    fn inverse() {
         let m = Matrix4X4::from([
             [2.0, 3.0, 4.0, 3.0],
             [1.2, 3.4, -4.3, 11.9],
             [8.2, 7.0, 0.5, 5.9],
             [12.0, -3.4, 6.3, 5.6],
         ]);
-        assert_matrix_approx_equal(&(m.inverse() * m), &Matrix4X4::identity());
+        assert_relative_eq!(m.inverse() * m, Matrix4X4::identity());
     }
 
     /// Approximate equality implementations for testing purposes

@@ -220,15 +220,14 @@ impl<T: Scalar> Div<T> for Normal3<T> {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use crate::geometry::Cross;
-    use approx::{AbsDiffEq, RelativeEq, UlpsEq};
-    use assert_approx_eq::assert_approx_eq;
+    use approx::{assert_relative_eq, AbsDiffEq, RelativeEq, UlpsEq};
     use num_traits::Float;
 
     #[test]
-    fn normal_equals() {
+    fn equals() {
         // Floats
         let v1 = normal3f(1.0, 1.0, 1.0);
         let v2 = normal3f(1.0, 1.0, 1.0);
@@ -241,7 +240,7 @@ mod test {
     }
 
     #[test]
-    fn normal_not_equals() {
+    fn not_equals() {
         // Floats
         let v1 = normal3f(1.0, 1.0, 1.0);
         let v2 = normal3f(1.0, 2.0, 1.0);
@@ -255,12 +254,12 @@ mod test {
 
     #[test]
     #[should_panic]
-    fn normal_no_nans() {
+    fn no_nans() {
         normal3f(FloatRT::nan(), FloatRT::nan(), FloatRT::nan());
     }
 
     #[test]
-    fn normal_add() {
+    fn add() {
         let v1 = normal3f(1.0, -2.0, 5.0);
         let v2 = normal3f(12.0, 3.0, -1.0);
         assert_eq!(v1 + v2, normal3f(13.0, 1.0, 4.0));
@@ -270,7 +269,7 @@ mod test {
     }
 
     #[test]
-    fn normal_sub() {
+    fn sub() {
         let v1 = normal3f(1.0, -2.0, 5.0);
         let v2 = normal3f(12.0, 3.0, -1.0);
         assert_eq!(v1 - v2, normal3f(-11.0, -5.0, 6.0));
@@ -281,7 +280,7 @@ mod test {
     }
 
     #[test]
-    fn normal_negate() {
+    fn negate() {
         let v1 = normal3f(1.0, -2.0, 5.0);
         assert_eq!(-v1, normal3f(-1.0, 2.0, -5.0));
 
@@ -290,7 +289,7 @@ mod test {
     }
 
     #[test]
-    fn normal_mul_by_scalar() {
+    fn mul_by_scalar() {
         let v1 = normal3f(2.0, 3.0, 4.0);
         assert_eq!(v1 * 2.0, normal3f(4.0, 6.0, 8.0));
         assert_eq!(v1 * 2.0, normal3f(4.0, 6.0, 8.0));
@@ -301,7 +300,7 @@ mod test {
     }
 
     #[test]
-    fn normal_div_by_scalar() {
+    fn div_by_scalar() {
         let v1 = normal3f(2.0, 3.0, 4.0);
         assert_eq!(v1 / 2.0, normal3f(1.0, 1.5, 2.0));
 
@@ -310,7 +309,7 @@ mod test {
     }
 
     #[test]
-    fn normal_dot() {
+    fn dot() {
         let v1 = normal3f(2.0, 3.0, 4.0);
         let v2 = normal3f(1.0, -2.0, 5.0);
         assert_eq!(Normal3::dot(v1, v2), 16.0);
@@ -326,7 +325,7 @@ mod test {
     }
 
     #[test]
-    fn normal_cross_with_vec() {
+    fn cross_with_vec() {
         let n1 = normal3f(2.0, 3.0, 4.0);
         let v2 = Vec3::new(1.0, -2.0, 5.0);
         assert_eq!(Vec3::cross(n1, v2), Vec3::new(23.0, -6.0, -7.0));
@@ -337,25 +336,23 @@ mod test {
     }
 
     #[test]
-    fn normal_length() {
+    fn length() {
         let v = normal3f(2.0, -3.0, 4.0);
-        assert_approx_eq!(5.3851648, v.length());
+        assert_relative_eq!(5.3851648, v.length());
 
         let v = normal3i(-3, 5, 2);
-        assert_approx_eq!(6.164414, v.length());
+        assert_relative_eq!(6.164414, v.length());
     }
 
     #[test]
-    fn normal_normalize() {
+    fn normalize() {
         let v = normal3f(2.0, -3.0, 4.0);
         let v_normal = v.normalize();
-        assert_approx_eq!(v_normal.x, 0.3713906);
-        assert_approx_eq!(v_normal.y, -0.55708601);
-        assert_approx_eq!(v_normal.z, 0.74278135);
+        assert_relative_eq!(v_normal, normal3f(0.3713906, -0.55708601, 0.74278135));
     }
 
     #[test]
-    fn normal_abs() {
+    fn abs() {
         let v = normal3f(-2.2, 4.5, -10.0);
         assert_eq!(v.abs(), normal3f(2.2, 4.5, 10.0));
         let v = normal3i(-2, 4, -10);
@@ -363,14 +360,14 @@ mod test {
     }
 
     #[test]
-    fn normal_cast() {
+    fn cast() {
         let p1 = normal3f(2.6, 3.3, -4.7);
         let p2: Normal3i = p1.cast();
         assert_eq!(p2, normal3i(2, 3, -4));
     }
 
     #[test]
-    fn normal_index() {
+    fn index() {
         let v1 = normal3f(1.2, 8.2, -9.4);
         assert_eq!(v1[0], 1.2);
         assert_eq!(v1[1], 8.2);
@@ -378,7 +375,7 @@ mod test {
     }
 
     #[test]
-    fn normal_max_min() {
+    fn max_min() {
         let v1 = normal3f(1.4, -5.5, 8.9);
         let v2 = normal3f(3.4, -7.0, 6.0);
         assert_eq!(v1.max_component(), 8.9);
@@ -389,7 +386,7 @@ mod test {
     }
 
     #[test]
-    fn normal_face_forward() {
+    fn face_forward() {
         let n = normal3f(1.0, 1.0, 1.0);
         let v = Vec3::new(-0.5, 1.0, -1.0);
         assert_eq!(n.face_forward(v), normal3f(-1.0, -1.0, -1.0));

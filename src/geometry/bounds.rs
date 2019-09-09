@@ -265,13 +265,13 @@ impl<T: Scalar> Bounds2<T> {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
-    use approx::{AbsDiffEq, RelativeEq, UlpsEq};
-    use assert_approx_eq::assert_approx_eq;
+    use crate::geometry::vector::Vec3f;
+    use approx::{assert_relative_eq, AbsDiffEq, RelativeEq, UlpsEq};
 
     #[test]
-    fn bounds_from_point() {
+    fn from_point() {
         let p = Point3f::new(1.0, 1.2, 1.4);
         let b = Bounds3f::from_point(p);
         assert_eq!(b.p_max, p);
@@ -279,7 +279,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_index() {
+    fn index() {
         let p1 = Point3f::new(-1.0, 0.0, -2.0);
         let p2 = Point3f::new(2.0, 3.0, 2.0);
         let b1 = Bounds3f::new(p2, p1);
@@ -288,7 +288,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_corners() {
+    fn corners() {
         let p1 = Point3f::new(-1.0, 0.0, -2.0);
         let p2 = Point3f::new(2.0, 3.0, 2.0);
         let b1 = Bounds3f::new(p2, p1);
@@ -303,7 +303,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_diagonal() {
+    fn diagonal() {
         let p1 = Point3f::new(-1.0, 0.0, -2.0);
         let p2 = Point3f::new(2.0, 3.0, 2.0);
         let b1 = Bounds3f::new(p2, p1);
@@ -322,7 +322,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_surface_area() {
+    fn surface_area() {
         let p1 = Point3f::new(0.0, 0.0, 0.0);
         let p2 = Point3f::new(2.0, 3.0, 2.0);
         let b1 = Bounds3f::new(p2, p1);
@@ -330,7 +330,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_volume() {
+    fn volume() {
         let p1 = Point3f::new(0.0, 0.0, 0.0);
         let p2 = Point3f::new(2.0, 3.0, 2.0);
         let b1 = Bounds3f::new(p2, p1);
@@ -338,7 +338,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_perimeter() {
+    fn perimeter() {
         let p1 = Point2f::new(-1.0, 0.0);
         let p2 = Point2f::new(2.0, 3.0);
         let b1 = Bounds2f::new(p2, p1);
@@ -346,7 +346,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_area() {
+    fn area() {
         let p1 = Point2f::new(-1.0, 0.0);
         let p2 = Point2f::new(2.0, 3.0);
         let b1 = Bounds2f::new(p2, p1);
@@ -354,7 +354,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_maximum_extent() {
+    fn maximum_extent() {
         let p1 = Point3f::new(-1.0, 0.0, 1.0);
         let p2 = Point3f::new(2.0, 3.0, 4.5);
         let b1 = Bounds3f::new(p2, p1);
@@ -362,30 +362,26 @@ mod test {
     }
 
     #[test]
-    fn bounds_lerp() {
+    fn lerp() {
         let t = Point3f::new(0.5, 0.2, 0.6);
         let p1 = Point3f::new(0.0, 0.0, -10.0);
         let p2 = Point3f::new(4.0, 10.0, 10.0);
         let b = Bounds3f::new(p1, p2);
         let p_lerp = b.lerp(t);
-        assert_approx_eq!(p_lerp.x, 2.0);
-        assert_approx_eq!(p_lerp.y, 2.0);
-        assert_approx_eq!(p_lerp.z, 2.0);
+        assert_relative_eq!(p_lerp, Point3f::new(2.0, 2.0, 2.0));
     }
 
     #[test]
-    fn bounds_offset() {
+    fn offset() {
         let p1 = Point3f::new(0.0, 0.0, -10.0);
         let p2 = Point3f::new(4.0, 10.0, 10.0);
         let b = Bounds3f::new(p1, p2);
         let p_offset = b.offset(Point3f::new(2.0, 2.0, 2.0));
-        assert_approx_eq!(p_offset.x, 0.5);
-        assert_approx_eq!(p_offset.y, 0.2);
-        assert_approx_eq!(p_offset.z, 0.6);
+        assert_relative_eq!(p_offset, Vec3f::new(0.5, 0.2, 0.6));
     }
 
     #[test]
-    fn bounds_bounding_sphere() {
+    fn bounding_sphere() {
         let p1 = Point3f::new(2.0, 0.0, -10.0);
         let p2 = Point3f::new(4.0, 10.0, 10.0);
         let b = Bounds3f::new(p1, p2);
@@ -395,7 +391,7 @@ mod test {
         )
     }
     #[test]
-    fn bounds_union_point() {
+    fn union_point() {
         let p1 = Point3f::new(2.0, 0.0, -10.0);
         let p2 = Point3f::new(4.0, 10.0, 10.0);
         let b = Bounds3f::new(p1, p2);
@@ -406,7 +402,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_union() {
+    fn union() {
         let p1 = Point3f::new(2.0, 0.0, -10.0);
         let p2 = Point3f::new(4.0, 10.0, 10.0);
         let b1 = Bounds3f::new(p1, p2);
@@ -418,7 +414,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_intersect() {
+    fn intersect() {
         let p1 = Point3f::new(2.0, 0.0, -10.0);
         let p2 = Point3f::new(4.0, 10.0, 10.0);
         let b1 = Bounds3f::new(p1, p2);
@@ -430,7 +426,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_overlaps() {
+    fn overlaps() {
         let p1 = Point3f::new(2.0, 0.0, -10.0);
         let p2 = Point3f::new(4.0, 10.0, 10.0);
         let b1 = Bounds3f::new(p1, p2);
@@ -443,7 +439,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_inside() {
+    fn inside() {
         let p1 = Point3f::new(2.0, 0.0, -10.0);
         let p2 = Point3f::new(4.0, 10.0, 10.0);
         let b1 = Bounds3f::new(p1, p2);
@@ -453,7 +449,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_inside_exclusive() {
+    fn inside_exclusive() {
         let p1 = Point3f::new(2.0, 0.0, -10.0);
         let p2 = Point3f::new(4.0, 10.0, 10.0);
         let b1 = Bounds3f::new(p1, p2);
@@ -465,7 +461,7 @@ mod test {
     }
 
     #[test]
-    fn bounds_expand() {
+    fn expand() {
         let p1 = Point3f::new(2.0, 0.0, -10.0);
         let p2 = Point3f::new(4.0, 10.0, 10.0);
         let b1 = Bounds3f::new(p1, p2);

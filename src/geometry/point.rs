@@ -370,16 +370,15 @@ where
     }
 }
 
-
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use crate::geometry::vector::{vec2f, vec2i, vec3f, vec3i};
-    use approx::{AbsDiffEq, RelativeEq, UlpsEq};
-    use assert_approx_eq::assert_approx_eq;
+    use approx::{assert_relative_eq, AbsDiffEq, RelativeEq, UlpsEq};
     use num_traits::Float;
+
     #[test]
-    fn point_equals() {
+    fn equals() {
         // Floats
         let p1 = point3f(1.0, 1.0, 1.0);
         let p2 = point3f(1.0, 1.0, 1.0);
@@ -398,7 +397,7 @@ mod test {
     }
 
     #[test]
-    fn point_not_equals() {
+    fn not_equals() {
         // Floats
         let p1 = point3f(1.0, 1.0, 1.0);
         let p2 = point3f(1.0, 2.0, 1.0);
@@ -418,12 +417,12 @@ mod test {
 
     #[test]
     #[should_panic]
-    fn point_no_nans() {
+    fn no_nans() {
         point3f(FloatRT::nan(), FloatRT::nan(), FloatRT::nan());
     }
 
     #[test]
-    fn point_extend_truncate() {
+    fn extend_truncate() {
         let p = point3f(2.0, 3.0, 4.0);
         let result = point2f(2.0, 3.0);
         assert_eq!(p.truncate(), result);
@@ -433,7 +432,7 @@ mod test {
     }
 
     #[test]
-    fn point_add() {
+    fn add() {
         let p1 = point3f(1.0, -2.0, 5.0);
         let p2 = point3f(12.0, 3.0, -1.0);
         assert_eq!(p1 + p2, point3f(13.0, 1.0, 4.0));
@@ -452,7 +451,7 @@ mod test {
     }
 
     #[test]
-    fn point_add_vector() {
+    fn add_vector() {
         let p1 = point3f(1.0, -2.0, 5.0);
         let v2 = vec3f(12.0, 3.0, -1.0);
         assert_eq!(p1 + v2, point3f(13.0, 1.0, 4.0));
@@ -471,7 +470,7 @@ mod test {
     }
 
     #[test]
-    fn point_sub() {
+    fn sub() {
         let p1 = point3f(1.0, -2.0, 5.0);
         let p2 = point3f(12.0, 3.0, -1.0);
         assert_eq!(p1 - p2, vec3f(-11.0, -5.0, 6.0));
@@ -490,7 +489,7 @@ mod test {
     }
 
     #[test]
-    fn point_mul_by_scalar() {
+    fn mul_by_scalar() {
         let p1 = point3f(2.0, 3.0, 4.0);
         assert_eq!(p1 * 2.0, point3f(4.0, 6.0, 8.0));
 
@@ -505,7 +504,7 @@ mod test {
     }
 
     #[test]
-    fn point_div_by_scalar() {
+    fn div_by_scalar() {
         let p1 = point3f(10.0, 8.0, 4.0);
         assert_eq!(p1 / 2.0, point3f(5.0, 4.0, 2.0));
 
@@ -520,7 +519,7 @@ mod test {
     }
 
     #[test]
-    fn point_dist() {
+    fn dist() {
         let p1 = point3f(2.0, 3.0, 4.0);
         let p2 = point3f(1.0, -2.0, 5.0);
         assert_eq!(Point3f::dist(p1, p2), 5.1961524);
@@ -539,7 +538,7 @@ mod test {
     }
 
     #[test]
-    fn point_cast() {
+    fn cast() {
         let p1 = point3f(2.6, 3.3, -4.7);
         let p2: Point3i = p1.cast();
         assert_eq!(p2, point3i(2, 3, -4));
@@ -550,19 +549,16 @@ mod test {
     }
 
     #[test]
-    fn point_lerp() {
+    fn lerp() {
         let p1 = point3f(2.0, 3.0, -4.0);
         let p2 = point3f(4.0, 9.0, 2.0);
         let p3 = Point3f::lerp(0.6, p1, p2);
-        assert_approx_eq!(p3.x, 3.2);
-        assert_approx_eq!(p3.y, 6.6);
-        assert_approx_eq!(p3.z, -0.4);
+        assert_relative_eq!(p3, Point3f::new(3.2, 6.6, -0.4), max_relative = 1.0e-6);
 
         let p1 = point2f(2.0, 3.0);
         let p2 = point2f(4.0, 9.0);
         let p3 = Point2f::lerp(0.6, p1, p2);
-        assert_approx_eq!(p3.x, 3.2);
-        assert_approx_eq!(p3.y, 6.6);
+        assert_relative_eq!(p3, Point2f::new(3.2, 6.6));
 
         let p1 = point3i(2, 3, -4);
         let p2 = point3i(4, 9, 2);
@@ -576,7 +572,7 @@ mod test {
     }
 
     #[test]
-    fn point_max() {
+    fn max() {
         let p1 = point3f(2.0, 11.0, -4.0);
         let p2 = point3f(4.0, 9.0, -6.0);
         let p3 = Point3f::max(p1, p2);
@@ -599,7 +595,7 @@ mod test {
     }
 
     #[test]
-    fn point_floor_ceil_abs() {
+    fn floor_ceil_abs() {
         let p1 = point3f(-2.3, 11.7, -4.4);
         assert_eq!(p1.floor(), point3f(-3.0, 11.0, -5.0));
         assert_eq!(p1.ceil(), point3f(-2.0, 12.0, -4.0));
@@ -611,7 +607,6 @@ mod test {
         assert_eq!(p1.abs(), point2f(2.3, 11.7));
     }
 
-    
     /// Approximate equality implementations for testing purposes
     impl<T: AbsDiffEq> AbsDiffEq for Point3<T>
     where
