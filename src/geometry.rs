@@ -3,6 +3,7 @@ mod matrix;
 mod normal;
 mod point;
 mod ray;
+mod transform;
 mod vector;
 
 use num_traits::{NumCast, Signed};
