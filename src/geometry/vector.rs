@@ -1,11 +1,8 @@
 use super::normal::Normal3;
 use super::point::{Point2, Point3};
 use super::{Cross, Dot, FloatRT, Scalar};
-use assert_approx_eq::assert_approx_eq;
-use num_traits::{Float, Num, NumCast, PrimInt, Signed};
+use num_traits::NumCast;
 use std::ops::{Add, Div, Index, Mul, Neg, Sub};
-
-// Switching this alias between f32 and f64 will switch precision of all vector math
 
 // Convenience aliases
 pub type Vec3f = Vec3<FloatRT>;
@@ -382,7 +379,7 @@ impl<T: Scalar> Vec2<T> {
         Self::new(v1.x.max(v2.x), v1.y.max(v2.y))
     }
 
-    //Component wise max
+    //Component wise min
     pub fn min(v1: Self, v2: Self) -> Self {
         Self::new(v1.x.min(v2.x), v1.y.min(v2.y))
     }
@@ -476,6 +473,10 @@ impl<T: Scalar> Div<T> for Vec2<T> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use approx::{AbsDiffEq, RelativeEq, UlpsEq};
+    use assert_approx_eq::assert_approx_eq;
+    use num_traits::Float;
+
     #[test]
     fn vector_equals() {
         // Floats
@@ -728,5 +729,104 @@ mod test {
         assert_approx_eq!(v1.length(), 1.0);
         assert_approx_eq!(v2.length(), 1.0);
         assert_approx_eq!(v3.length(), 1.0);
+    }
+
+    /// Approximate equality implementations for testing purposes
+    impl<T: AbsDiffEq> AbsDiffEq for Vec3<T>
+    where
+        T::Epsilon: Copy,
+    {
+        type Epsilon = T::Epsilon;
+        fn default_epsilon() -> T::Epsilon {
+            T::default_epsilon()
+        }
+
+        fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+            T::abs_diff_eq(&self.x, &other.x, epsilon)
+                && T::abs_diff_eq(&self.y, &other.y, epsilon)
+                && T::abs_diff_eq(&self.z, &other.z, epsilon)
+        }
+    }
+
+    impl<T: RelativeEq> RelativeEq for Vec3<T>
+    where
+        T::Epsilon: Copy,
+    {
+        fn default_max_relative() -> T::Epsilon {
+            T::default_max_relative()
+        }
+
+        fn relative_eq(
+            &self,
+            other: &Self,
+            epsilon: Self::Epsilon,
+            max_relative: T::Epsilon,
+        ) -> bool {
+            T::relative_eq(&self.x, &other.x, epsilon, max_relative)
+                && T::relative_eq(&self.y, &other.y, epsilon, max_relative)
+                && T::relative_eq(&self.z, &other.z, epsilon, max_relative)
+        }
+    }
+
+    impl<T: UlpsEq> UlpsEq for Vec3<T>
+    where
+        T::Epsilon: Copy,
+    {
+        fn default_max_ulps() -> u32 {
+            T::default_max_ulps()
+        }
+
+        fn ulps_eq(&self, other: &Self, epsilon: T::Epsilon, max_ulps: u32) -> bool {
+            T::ulps_eq(&self.x, &other.x, epsilon, max_ulps)
+                && T::ulps_eq(&self.y, &other.y, epsilon, max_ulps)
+                && T::ulps_eq(&self.z, &other.z, epsilon, max_ulps)
+        }
+    }
+
+    impl<T: AbsDiffEq> AbsDiffEq for Vec2<T>
+    where
+        T::Epsilon: Copy,
+    {
+        type Epsilon = T::Epsilon;
+        fn default_epsilon() -> T::Epsilon {
+            T::default_epsilon()
+        }
+
+        fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+            T::abs_diff_eq(&self.x, &other.x, epsilon) && T::abs_diff_eq(&self.y, &other.y, epsilon)
+        }
+    }
+
+    impl<T: RelativeEq> RelativeEq for Vec2<T>
+    where
+        T::Epsilon: Copy,
+    {
+        fn default_max_relative() -> T::Epsilon {
+            T::default_max_relative()
+        }
+
+        fn relative_eq(
+            &self,
+            other: &Self,
+            epsilon: Self::Epsilon,
+            max_relative: T::Epsilon,
+        ) -> bool {
+            T::relative_eq(&self.x, &other.x, epsilon, max_relative)
+                && T::relative_eq(&self.y, &other.y, epsilon, max_relative)
+        }
+    }
+
+    impl<T: UlpsEq> UlpsEq for Vec2<T>
+    where
+        T::Epsilon: Copy,
+    {
+        fn default_max_ulps() -> u32 {
+            T::default_max_ulps()
+        }
+
+        fn ulps_eq(&self, other: &Self, epsilon: T::Epsilon, max_ulps: u32) -> bool {
+            T::ulps_eq(&self.x, &other.x, epsilon, max_ulps)
+                && T::ulps_eq(&self.y, &other.y, epsilon, max_ulps)
+        }
     }
 }
