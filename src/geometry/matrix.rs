@@ -108,7 +108,7 @@ impl Matrix4X4 {
         }
     }
 
-    pub fn transpose(self) -> Self {
+    pub fn transpose(&self) -> Self {
         Self {
             m: [
                 [self.m[0][0], self.m[1][0], self.m[2][0], self.m[3][0]],
@@ -117,6 +117,13 @@ impl Matrix4X4 {
                 [self.m[0][3], self.m[1][3], self.m[2][3], self.m[3][3]],
             ],
         }
+    }
+
+    /// Determinant of upper-left 3x3 submatrix
+    pub fn determinant(&self) -> FloatRT {
+        self.m[0][0] * (self.m[1][1] * self.m[2][2] - self.m[1][2] * self.m[2][1])
+            - self.m[0][1] * (self.m[1][0] * self.m[2][2] - self.m[1][2] * self.m[2][0])
+            + self.m[0][2] * (self.m[1][0] * self.m[2][1] - self.m[1][1] * self.m[2][0])
     }
 }
 
@@ -174,6 +181,7 @@ impl<'a, 'b> Mul<&'b Matrix4X4> for &'a Matrix4X4 {
 #[cfg(test)]
 mod test {
     use super::*;
+    use approx::{AbsDiffEq, RelativeEq, UlpsEq};
     use assert_approx_eq::assert_approx_eq;
 
     fn assert_matrix_approx_equal(m1: &Matrix4X4, m2: &Matrix4X4) {
@@ -216,9 +224,9 @@ mod test {
         );
 
         let res = Matrix4X4::from([
-            [29., 28., 10., 20.],
+            [29., 28., 10., 22.],
             [-16., 27., 26., 24.],
-            [29., 8., 25., 4.],
+            [29., 8., -31., 4.],
             [44., 18., -30., 31.],
         ]);
         assert_eq!(m1 * m2, res);
@@ -282,4 +290,66 @@ mod test {
         assert_matrix_approx_equal(&(m.inverse() * m), &Matrix4X4::identity());
     }
 
+    /// Approximate equality implementations for testing purposes
+    impl AbsDiffEq for Matrix4X4 {
+        type Epsilon = <FloatRT as AbsDiffEq>::Epsilon;
+        fn default_epsilon() -> Self::Epsilon {
+            FloatRT::default_epsilon()
+        }
+
+        fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+            for i in 0..4 {
+                for j in 0..4 {
+                    if <FloatRT as AbsDiffEq>::abs_diff_ne(&self.m[i][j], &other.m[i][j], epsilon) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+    }
+
+    impl RelativeEq for Matrix4X4 {
+        fn default_max_relative() -> <FloatRT as AbsDiffEq>::Epsilon {
+            FloatRT::default_max_relative()
+        }
+
+        fn relative_eq(
+            &self,
+            other: &Self,
+            epsilon: Self::Epsilon,
+            max_relative: <FloatRT as AbsDiffEq>::Epsilon,
+        ) -> bool {
+            for i in 0..4 {
+                for j in 0..4 {
+                    if FloatRT::relative_ne(&self.m[i][j], &other.m[i][j], epsilon, max_relative) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+    }
+
+    impl UlpsEq for Matrix4X4 {
+        fn default_max_ulps() -> u32 {
+            FloatRT::default_max_ulps()
+        }
+
+        fn ulps_eq(
+            &self,
+            other: &Self,
+            epsilon: <FloatRT as AbsDiffEq>::Epsilon,
+            max_ulps: u32,
+        ) -> bool {
+            for i in 0..4 {
+                for j in 0..4 {
+                    if FloatRT::ulps_ne(&self.m[i][j], &other.m[i][j], epsilon, max_ulps) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+    }
 }
