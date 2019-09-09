@@ -1,9 +1,8 @@
-use super::vector::{vec2f, vec2i, vec3f, vec3i, Vec2, Vec3};
+use super::vector::{Vec2, Vec3};
 use super::FloatRT;
 use super::Scalar;
-use assert_approx_eq::assert_approx_eq;
-use num_traits::{Float, Num, NumCast, PrimInt, Signed};
-use std::ops::{Add, Index, Mul, Div, Sub};
+use num_traits::NumCast;
+use std::ops::{Add, Div, Index, Mul, Sub};
 
 // Convenience aliases
 pub type Point3f = Point3<FloatRT>;
@@ -190,7 +189,7 @@ where
 impl<T: Scalar> Div<T> for Point3<T> {
     type Output = Self;
     fn div(self, rhs: T) -> Self {
-        Self::new(self.x/rhs, self.y/rhs, self.z/rhs)
+        Self::new(self.x / rhs, self.y / rhs, self.z / rhs)
     }
 }
 
@@ -356,7 +355,7 @@ where
 impl<T: Scalar> Div<T> for Point2<T> {
     type Output = Self;
     fn div(self, rhs: T) -> Self {
-        Self::new(self.x/rhs, self.y/rhs)
+        Self::new(self.x / rhs, self.y / rhs)
     }
 }
 
@@ -371,9 +370,14 @@ where
     }
 }
 
+
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::geometry::vector::{vec2f, vec2i, vec3f, vec3i};
+    use approx::{AbsDiffEq, RelativeEq, UlpsEq};
+    use assert_approx_eq::assert_approx_eq;
+    use num_traits::Float;
     #[test]
     fn point_equals() {
         // Floats
@@ -503,16 +507,16 @@ mod test {
     #[test]
     fn point_div_by_scalar() {
         let p1 = point3f(10.0, 8.0, 4.0);
-        assert_eq!(p1/2.0, point3f(5.0, 4.0, 2.0));
+        assert_eq!(p1 / 2.0, point3f(5.0, 4.0, 2.0));
 
         let p1 = point3i(2, 3, 4);
-        assert_eq!(p1/2, point3i(1, 1, 2));
+        assert_eq!(p1 / 2, point3i(1, 1, 2));
 
         let p1 = point2f(4.0, 6.0);
-        assert_eq!(p1/2.0, point2f(2.0, 3.0));
+        assert_eq!(p1 / 2.0, point2f(2.0, 3.0));
 
         let p1 = point2i(2, 3);
-        assert_eq!(p1/2, point2i(1, 1));
+        assert_eq!(p1 / 2, point2i(1, 1));
     }
 
     #[test]
@@ -605,5 +609,105 @@ mod test {
         assert_eq!(p1.floor(), point2f(-3.0, 11.0));
         assert_eq!(p1.ceil(), point2f(-2.0, 12.0));
         assert_eq!(p1.abs(), point2f(2.3, 11.7));
+    }
+
+    
+    /// Approximate equality implementations for testing purposes
+    impl<T: AbsDiffEq> AbsDiffEq for Point3<T>
+    where
+        T::Epsilon: Copy,
+    {
+        type Epsilon = T::Epsilon;
+        fn default_epsilon() -> T::Epsilon {
+            T::default_epsilon()
+        }
+
+        fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+            T::abs_diff_eq(&self.x, &other.x, epsilon)
+                && T::abs_diff_eq(&self.y, &other.y, epsilon)
+                && T::abs_diff_eq(&self.z, &other.z, epsilon)
+        }
+    }
+
+    impl<T: RelativeEq> RelativeEq for Point3<T>
+    where
+        T::Epsilon: Copy,
+    {
+        fn default_max_relative() -> T::Epsilon {
+            T::default_max_relative()
+        }
+
+        fn relative_eq(
+            &self,
+            other: &Self,
+            epsilon: Self::Epsilon,
+            max_relative: T::Epsilon,
+        ) -> bool {
+            T::relative_eq(&self.x, &other.x, epsilon, max_relative)
+                && T::relative_eq(&self.y, &other.y, epsilon, max_relative)
+                && T::relative_eq(&self.z, &other.z, epsilon, max_relative)
+        }
+    }
+
+    impl<T: UlpsEq> UlpsEq for Point3<T>
+    where
+        T::Epsilon: Copy,
+    {
+        fn default_max_ulps() -> u32 {
+            T::default_max_ulps()
+        }
+
+        fn ulps_eq(&self, other: &Self, epsilon: T::Epsilon, max_ulps: u32) -> bool {
+            T::ulps_eq(&self.x, &other.x, epsilon, max_ulps)
+                && T::ulps_eq(&self.y, &other.y, epsilon, max_ulps)
+                && T::ulps_eq(&self.z, &other.z, epsilon, max_ulps)
+        }
+    }
+
+    impl<T: AbsDiffEq> AbsDiffEq for Point2<T>
+    where
+        T::Epsilon: Copy,
+    {
+        type Epsilon = T::Epsilon;
+        fn default_epsilon() -> T::Epsilon {
+            T::default_epsilon()
+        }
+
+        fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+            T::abs_diff_eq(&self.x, &other.x, epsilon) && T::abs_diff_eq(&self.y, &other.y, epsilon)
+        }
+    }
+
+    impl<T: RelativeEq> RelativeEq for Point2<T>
+    where
+        T::Epsilon: Copy,
+    {
+        fn default_max_relative() -> T::Epsilon {
+            T::default_max_relative()
+        }
+
+        fn relative_eq(
+            &self,
+            other: &Self,
+            epsilon: Self::Epsilon,
+            max_relative: T::Epsilon,
+        ) -> bool {
+            T::relative_eq(&self.x, &other.x, epsilon, max_relative)
+                && T::relative_eq(&self.y, &other.y, epsilon, max_relative)
+        }
+    }
+
+    impl<T: UlpsEq> UlpsEq for Point2<T>
+    where
+        T::Epsilon: Copy,
+    {
+        fn default_max_ulps() -> u32 {
+            T::default_max_ulps()
+        }
+
+        fn ulps_eq(&self, other: &Self, epsilon: T::Epsilon, max_ulps: u32) -> bool {
+            T::ulps_eq(&self.x, &other.x, epsilon, max_ulps)
+                && T::ulps_eq(&self.y, &other.y, epsilon, max_ulps)
+        }
     }
 }
