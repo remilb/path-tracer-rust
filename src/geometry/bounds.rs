@@ -2,6 +2,7 @@ use super::point::{Point2, Point2f, Point3, Point3f};
 use super::vector::{Vec2, Vec3};
 use super::{FloatRT, Scalar};
 use crate::utils::math::lerp;
+use std::ops::Index;
 
 // Convenience aliases
 pub type Bounds3f = Bounds3<FloatRT>;
@@ -9,13 +10,13 @@ pub type Bounds3i = Bounds3<u32>;
 pub type Bounds2f = Bounds2<FloatRT>;
 pub type Bounds2i = Bounds2<u32>;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Bounds3<T> {
-    p_min: Point3<T>,
-    p_max: Point3<T>,
+    pub p_min: Point3<T>,
+    pub p_max: Point3<T>,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Bounds2<T> {
     p_min: Point2<T>,
     p_max: Point2<T>,
@@ -31,6 +32,14 @@ impl<T: Scalar> Bounds3<T> {
 
     pub fn from_point(p: Point3<T>) -> Self {
         Bounds3 { p_min: p, p_max: p }
+    }
+
+    pub fn corner(&self, corner: u8) -> Point3<T> {
+        assert!(corner >= 0 && corner < 8);
+        let x = self[(corner & 1)].x;
+        let y = self[if (corner & 2) > 0 { 1 } else { 0 }].y;
+        let z = self[if (corner & 4) > 0 { 1 } else { 0 }].z;
+        Point3::new(x, y, z)
     }
 
     pub fn diagonal(self) -> Vec3<T> {
@@ -137,6 +146,17 @@ impl<T: Scalar> Bounds3<T> {
     pub fn expand(b: Self, delta: T) -> Self {
         let v = Vec3::new(delta, delta, delta);
         Bounds3::new(b.p_min - v, b.p_max + v)
+    }
+}
+
+impl<T: Scalar> Index<u8> for Bounds3<T> {
+    type Output = Point3<T>;
+    fn index(&self, index: u8) -> &Self::Output {
+        match index {
+            0 => &self.p_min,
+            1 => &self.p_max,
+            _ => panic!("Bad index for Bounds3!"),
+        }
     }
 }
 
@@ -247,6 +267,7 @@ impl<T: Scalar> Bounds2<T> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use approx::{AbsDiffEq, RelativeEq, UlpsEq};
     use assert_approx_eq::assert_approx_eq;
 
     #[test]
@@ -255,6 +276,30 @@ mod test {
         let b = Bounds3f::from_point(p);
         assert_eq!(b.p_max, p);
         assert_eq!(b.p_min, p);
+    }
+
+    #[test]
+    fn bounds_index() {
+        let p1 = Point3f::new(-1.0, 0.0, -2.0);
+        let p2 = Point3f::new(2.0, 3.0, 2.0);
+        let b1 = Bounds3f::new(p2, p1);
+        assert_eq!(b1[0], p1);
+        assert_eq!(b1[1], p2);
+    }
+
+    #[test]
+    fn bounds_corners() {
+        let p1 = Point3f::new(-1.0, 0.0, -2.0);
+        let p2 = Point3f::new(2.0, 3.0, 2.0);
+        let b1 = Bounds3f::new(p2, p1);
+        assert_eq!(b1.corner(0), p1);
+        assert_eq!(b1.corner(7), p2);
+        assert_eq!(b1.corner(1), Point3f::new(2.0, 0.0, -2.0));
+        assert_eq!(b1.corner(2), Point3f::new(-1.0, 3.0, -2.0));
+        assert_eq!(b1.corner(3), Point3f::new(2.0, 3.0, -2.0));
+        assert_eq!(b1.corner(4), Point3f::new(-1.0, 0.0, 2.0));
+        assert_eq!(b1.corner(5), Point3f::new(2.0, 0.0, 2.0));
+        assert_eq!(b1.corner(6), Point3f::new(-1.0, 3.0, 2.0));
     }
 
     #[test]
@@ -427,5 +472,102 @@ mod test {
         let b2 = Bounds3f::expand(b1, 2.0);
         assert_eq!(b2.p_max, Point3f::new(6.0, 12.0, 12.0));
         assert_eq!(b2.p_min, Point3f::new(0.0, -2.0, -12.0));
+    }
+
+    /// Approximate equality implementations for testing purposes
+    impl<T: AbsDiffEq> AbsDiffEq for Bounds3<T>
+    where
+        T::Epsilon: Copy,
+    {
+        type Epsilon = T::Epsilon;
+        fn default_epsilon() -> T::Epsilon {
+            T::default_epsilon()
+        }
+
+        fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+            Point3::abs_diff_eq(&self.p_min, &other.p_min, epsilon)
+                && Point3::abs_diff_eq(&self.p_max, &other.p_max, epsilon)
+        }
+    }
+
+    impl<T: RelativeEq> RelativeEq for Bounds3<T>
+    where
+        T::Epsilon: Copy,
+    {
+        fn default_max_relative() -> T::Epsilon {
+            T::default_max_relative()
+        }
+
+        fn relative_eq(
+            &self,
+            other: &Self,
+            epsilon: Self::Epsilon,
+            max_relative: T::Epsilon,
+        ) -> bool {
+            Point3::relative_eq(&self.p_min, &other.p_min, epsilon, max_relative)
+                && Point3::relative_eq(&self.p_max, &other.p_max, epsilon, max_relative)
+        }
+    }
+
+    impl<T: UlpsEq> UlpsEq for Bounds3<T>
+    where
+        T::Epsilon: Copy,
+    {
+        fn default_max_ulps() -> u32 {
+            T::default_max_ulps()
+        }
+
+        fn ulps_eq(&self, other: &Self, epsilon: T::Epsilon, max_ulps: u32) -> bool {
+            Point3::ulps_eq(&self.p_min, &other.p_min, epsilon, max_ulps)
+                && Point3::ulps_eq(&self.p_max, &other.p_max, epsilon, max_ulps)
+        }
+    }
+
+    impl<T: AbsDiffEq> AbsDiffEq for Bounds2<T>
+    where
+        T::Epsilon: Copy,
+    {
+        type Epsilon = T::Epsilon;
+        fn default_epsilon() -> T::Epsilon {
+            T::default_epsilon()
+        }
+
+        fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+            Point2::abs_diff_eq(&self.p_min, &other.p_min, epsilon)
+                && Point2::abs_diff_eq(&self.p_max, &other.p_max, epsilon)
+        }
+    }
+
+    impl<T: RelativeEq> RelativeEq for Bounds2<T>
+    where
+        T::Epsilon: Copy,
+    {
+        fn default_max_relative() -> T::Epsilon {
+            T::default_max_relative()
+        }
+
+        fn relative_eq(
+            &self,
+            other: &Self,
+            epsilon: Self::Epsilon,
+            max_relative: T::Epsilon,
+        ) -> bool {
+            Point2::relative_eq(&self.p_min, &other.p_min, epsilon, max_relative)
+                && Point2::relative_eq(&self.p_max, &other.p_max, epsilon, max_relative)
+        }
+    }
+
+    impl<T: UlpsEq> UlpsEq for Bounds2<T>
+    where
+        T::Epsilon: Copy,
+    {
+        fn default_max_ulps() -> u32 {
+            T::default_max_ulps()
+        }
+
+        fn ulps_eq(&self, other: &Self, epsilon: T::Epsilon, max_ulps: u32) -> bool {
+            Point2::ulps_eq(&self.p_min, &other.p_min, epsilon, max_ulps)
+                && Point2::ulps_eq(&self.p_max, &other.p_max, epsilon, max_ulps)
+        }
     }
 }
