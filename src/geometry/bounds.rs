@@ -1,6 +1,7 @@
-use super::point::{Point2, Point2f, Point3, Point3f};
-use super::vector::{Vec2, Vec3};
+use super::Ray;
 use super::{FloatRT, Scalar};
+use super::{Point2, Point2f, Point3, Point3f};
+use super::{Vec2, Vec3};
 use crate::utils::math::lerp;
 use std::ops::Index;
 
@@ -48,7 +49,8 @@ impl<T: Scalar> Bounds3<T> {
 
     pub fn surface_area(self) -> T {
         let d = self.diagonal();
-        T::from(2).unwrap() * (d.x * d.y + d.y * d.z + d.x * d.z)
+        let half_area = d.x * d.y + d.y * d.z + d.x * d.z;
+        half_area + half_area
     }
 
     pub fn volume(self) -> T {
@@ -93,7 +95,7 @@ impl<T: Scalar> Bounds3<T> {
     }
 
     pub fn bounding_sphere(self) -> (Point3<T>, FloatRT) {
-        let center = (self.p_min + self.p_max) / T::from(2).unwrap();
+        let center = (self.p_min + self.p_max) / Scalar::from(2).unwrap();
         let radius = if Self::inside(center, self) {
             Point3::dist(center, self.p_max)
         } else {
@@ -146,6 +148,32 @@ impl<T: Scalar> Bounds3<T> {
     pub fn expand(b: Self, delta: T) -> Self {
         let v = Vec3::new(delta, delta, delta);
         Bounds3::new(b.p_min - v, b.p_max + v)
+    }
+
+    // TODO: This is a key method that is called many times, worth making performant
+    // TODO: Version of this method that accepts precomputed reciprocals
+    pub fn ray_intersect_test(&self, ray: Ray) -> Option<(FloatRT, FloatRT)> {
+        let (mut t0, mut t1) = (0.0, ray.tMax);
+        for i in 0..3 {
+            let inv_ray_dir = 1.0 / ray.d[i];
+            let t_near =
+                (<FloatRT as Scalar>::from(self.p_min[i]).unwrap() - ray.o[i]) * inv_ray_dir;
+            let t_far =
+                (<FloatRT as Scalar>::from(self.p_max[i]).unwrap() - ray.o[i]) * inv_ray_dir;
+            let (t_near, t_far) = if t_near > t_far {
+                (t_far, t_near)
+            } else {
+                (t_near, t_far)
+            };
+            t0 = if t_near > t0 { t_near } else { t0 };
+            t1 = if t_far < t1 { t_far } else { t1 };
+            // TODO: Deal with round-off treatment on t_far for robustness
+            if t0 > t1 {
+                return None;
+            }
+        }
+
+        Some((t0, t1))
     }
 }
 
@@ -213,7 +241,7 @@ impl<T: Scalar> Bounds2<T> {
     }
 
     pub fn bounding_circle(self) -> (Point2<T>, FloatRT) {
-        let center = (self.p_min + self.p_max) / T::from(2).unwrap();
+        let center = (self.p_min + self.p_max) / Scalar::from(2).unwrap();
         let radius = if Self::inside(center, self) {
             Point2::dist(center, self.p_max)
         } else {
@@ -269,6 +297,7 @@ mod tests {
     use super::*;
     use crate::geometry::vector::Vec3f;
     use approx::{assert_relative_eq, AbsDiffEq, RelativeEq, UlpsEq};
+    use num_traits::Float;
 
     #[test]
     fn from_point() {
@@ -468,6 +497,62 @@ mod tests {
         let b2 = Bounds3f::expand(b1, 2.0);
         assert_eq!(b2.p_max, Point3f::new(6.0, 12.0, 12.0));
         assert_eq!(b2.p_min, Point3f::new(0.0, -2.0, -12.0));
+    }
+
+    #[test]
+    fn ray_intersect_test() {
+        let inf = <FloatRT as Float>::infinity();
+        let origin = Point3f::zeros();
+        let start_time = 0.0;
+
+        // Test AABB
+        let p1 = Point3f::new(2.0, 0.0, 2.0);
+        let p2 = Point3f::new(4.0, 4.0, 10.0);
+        let b1 = Bounds3f::new(p1, p2);
+
+        // Should not intersect
+        let dir = Vec3f::new(-1.0, 0.0, 0.0);
+        let ray = Ray::new(origin, dir, inf, start_time);
+        assert_eq!(None, b1.ray_intersect_test(ray));
+
+        // Near miss
+        let dir = Vec3f::new(4.001, 0.0, 2.0);
+        let ray = Ray::new(origin, dir, inf, start_time);
+        assert_eq!(None, b1.ray_intersect_test(ray));
+
+        // Single intersection point, corner of box
+        let dir = Vec3f::new(4.0, 0.0, 2.0);
+        let ray = Ray::new(origin, dir, inf, start_time);
+        assert_eq!(Some((1.0, 1.0)), b1.ray_intersect_test(ray));
+
+        // Two intersections, correctly ordered
+        let dir = Vec3f::new(3.0, 1.0, 2.0);
+        let ray = Ray::new(origin, dir, inf, start_time);
+        match b1.ray_intersect_test(ray) {
+            None => panic!("Ray should have intersected but no intersection was found!"),
+            Some((t0, t1)) => {
+                assert_relative_eq!(t0, 1.0);
+                assert_relative_eq!(t1, 1.3333333);
+            }
+        }
+
+        // No intersection due to limiting max time
+        let dir = Vec3f::new(3.0, 1.0, 2.0);
+        let ray = Ray::new(origin, dir, 0.9, start_time);
+        assert_eq!(None, b1.ray_intersect_test(ray));
+
+        // Ray lies in plane of AABB
+        let dir = Vec3f::new(0.0, 0.0, 1.0);
+        let o = Point3f::new(2.0, 2.0, 4.0);
+        let ray = Ray::new(o, dir, inf, start_time);
+        assert_eq!(Some((0.0, 6.0)), b1.ray_intersect_test(ray));
+
+        // Ray lies entirely inside AABB and no intersections are withing rays tMax,
+        // should still return true
+        let dir = Vec3f::new(-0.5, -0.5, -0.5);
+        let o = Point3f::new(3.0, 2.0, 5.0);
+        let ray = Ray::new(o, dir, 0.2, start_time);
+        assert_eq!(Some((0.0, 0.2)), b1.ray_intersect_test(ray));
     }
 
     /// Approximate equality implementations for testing purposes
