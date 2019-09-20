@@ -1,4 +1,5 @@
 mod bounds;
+mod interaction;
 mod matrix;
 mod normal;
 mod point;
@@ -6,10 +7,18 @@ mod ray;
 mod transform;
 mod vector;
 
-use num_traits::{NumCast, Signed};
+use num_traits::{NumCast, Signed, ToPrimitive};
 
 type FloatRT = f32;
 const INFINITY: FloatRT = std::f32::INFINITY;
+
+// Reexports
+pub use normal::{Normal3, Normal3f, Normal3i};
+pub use point::{Point2, Point2f, Point2i, Point3, Point3f, Point3i};
+pub use ray::Ray;
+pub use transform::{Transform, Transformer};
+pub use vector::{Vec2, Vec2f, Vec2i, Vec3, Vec3f, Vec3i};
+pub use bounds::{Bounds3, Bounds3f, Bounds3i, Bounds2, Bounds2f, Bounds2i};
 
 // Dot product trait allows for dot between various types (Vec3, Normal3)
 pub trait Dot<RHS = Self> {
@@ -35,6 +44,9 @@ pub trait Scalar: Signed + NumCast + PartialOrd + Copy {
     fn min(self, other: Self) -> Self;
     fn floor(self) -> Self;
     fn ceil(self) -> Self;
+    fn from<T: ToPrimitive>(n: T) -> Option<Self> {
+        NumCast::from(n)
+    }
 }
 
 //Foreign implementations
