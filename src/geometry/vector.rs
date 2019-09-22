@@ -58,9 +58,9 @@ impl<T: Scalar> Vec3<T> {
 
     pub fn cast<U: Scalar>(self) -> Vec3<U> {
         Vec3::new(
-            U::from(self.x).unwrap(),
-            U::from(self.y).unwrap(),
-            U::from(self.z).unwrap(),
+            Scalar::from(self.x).unwrap(),
+            Scalar::from(self.y).unwrap(),
+            Scalar::from(self.z).unwrap(),
         )
     }
 
@@ -74,7 +74,7 @@ impl<T: Scalar> Vec3<T> {
     }
 
     pub fn normalize(self) -> Vec3<T> {
-        self / T::from(self.length()).unwrap()
+        self / Scalar::from(self.length()).unwrap()
     }
 
     pub fn dist(v1: Vec3<T>, v2: Vec3<T>) -> FloatRT {
@@ -328,7 +328,7 @@ impl<T: Scalar> Vec2<T> {
     }
 
     pub fn cast<U: Scalar>(self) -> Vec2<U> {
-        Vec2::new(U::from(self.x).unwrap(), U::from(self.y).unwrap())
+        Vec2::new(Scalar::from(self.x).unwrap(), Scalar::from(self.y).unwrap())
     }
 
     pub fn zeros() -> Vec2<T> {
@@ -359,7 +359,7 @@ impl<T: Scalar> Vec2<T> {
     }
 
     pub fn normalize(self) -> Vec2<T> {
-        self / T::from(self.length()).unwrap()
+        self / Scalar::from(self.length()).unwrap()
     }
 
     pub fn dist(v1: Vec2<T>, v2: Vec2<T>) -> FloatRT {

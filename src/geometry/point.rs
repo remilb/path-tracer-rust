@@ -42,9 +42,9 @@ impl<T: Scalar> Point3<T> {
 
     pub fn cast<U: Scalar>(self) -> Point3<U> {
         Point3 {
-            x: U::from(self.x).unwrap(),
-            y: U::from(self.y).unwrap(),
-            z: U::from(self.z).unwrap(),
+            x: Scalar::from(self.x).unwrap(),
+            y: Scalar::from(self.y).unwrap(),
+            z: Scalar::from(self.z).unwrap(),
         }
     }
 
@@ -135,9 +135,9 @@ impl<T: Scalar> Index<usize> for Point3<T> {
 impl<T: Scalar, U: Scalar> From<Vec3<U>> for Point3<T> {
     fn from(v: Vec3<U>) -> Point3<T> {
         Self::new(
-            T::from(v.x).unwrap(),
-            T::from(v.y).unwrap(),
-            T::from(v.z).unwrap(),
+            Scalar::from(v.x).unwrap(),
+            Scalar::from(v.y).unwrap(),
+            Scalar::from(v.z).unwrap(),
         )
     }
 }
@@ -219,8 +219,8 @@ impl<T: Scalar> Point2<T> {
 
     pub fn cast<U: Scalar>(self) -> Point2<U> {
         Point2 {
-            x: U::from(self.x).unwrap(),
-            y: U::from(self.y).unwrap(),
+            x: Scalar::from(self.x).unwrap(),
+            y: Scalar::from(self.y).unwrap(),
         }
     }
 
@@ -304,7 +304,7 @@ impl<T: Scalar> Index<usize> for Point2<T> {
 //Create Point2 from Vec2
 impl<T: Scalar, U: Scalar> From<Vec2<U>> for Point2<T> {
     fn from(v: Vec2<U>) -> Point2<T> {
-        Self::new(T::from(v.x).unwrap(), T::from(v.y).unwrap())
+        Self::new(Scalar::from(v.x).unwrap(), Scalar::from(v.y).unwrap())
     }
 }
 

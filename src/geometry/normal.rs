@@ -30,9 +30,9 @@ impl<T: Scalar> Normal3<T> {
 
     pub fn cast<U: Scalar>(self) -> Normal3<U> {
         Normal3::new(
-            U::from(self.x).unwrap(),
-            U::from(self.y).unwrap(),
-            U::from(self.z).unwrap(),
+            Scalar::from(self.x).unwrap(),
+            Scalar::from(self.y).unwrap(),
+            Scalar::from(self.z).unwrap(),
         )
     }
 
@@ -46,7 +46,7 @@ impl<T: Scalar> Normal3<T> {
     }
 
     pub fn normalize(self) -> Self {
-        self / T::from(self.length()).unwrap()
+        self / Scalar::from(self.length()).unwrap()
     }
 
     pub fn dist(v1: Normal3<T>, v2: Normal3<T>) -> FloatRT {
