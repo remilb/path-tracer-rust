@@ -7,6 +7,7 @@ use super::ray::Ray;
 use super::vector::{Vec3, Vec3f};
 use super::Cross;
 use super::{FloatRT, Scalar};
+use super::interaction::{SurfaceInteraction, ShadingData};
 use approx::relative_ne;
 use num_traits::NumCast;
 use std::ops::Mul;
@@ -17,7 +18,7 @@ pub struct Transform {
     m_inv: Matrix4X4,
 }
 
-pub trait Transformer<T: Copy> {
+pub trait Transformer<T> {
     fn apply(&self, target: T) -> T;
 }
 
@@ -32,6 +33,10 @@ impl Transform {
     /// New Transform from matrix m with explicitly provided inverse m_inv
     pub fn with_inverse(m: Matrix4X4, m_inv: Matrix4X4) -> Self {
         Self { m, m_inv }
+    }
+
+    pub fn identity() -> Self {
+        Self::default()
     }
 
     pub fn translate(delta: Vec3f) -> Self {
@@ -330,6 +335,24 @@ impl Transformer<Bounds3f> for Transform {
             translation + Vec3f::max(xa, xb) + Vec3f::max(ya, yb) + Vec3f::max(za, zb),
         )
     }
+}
+
+impl Transformer<SurfaceInteraction> for Transform {
+    fn apply(&self, si: SurfaceInteraction) -> SurfaceInteraction {
+        let sd = ShadingData {n: self.apply(si.shading.n).normalize(),
+                  dp: (self.apply(si.shading.dp.0), self.apply(si.shading.dp.1)),
+                  dn: (self.apply(si.shading.dn.0), self.apply(si.shading.dn.1))};
+
+        SurfaceInteraction {
+            p: self.apply(si.p),
+            n: self.apply(si.n).normalize(),
+            wo: self.apply(si.wo),
+            dp: (self.apply(si.dp.0), self.apply(si.dp.1)),
+            dn: (self.apply(si.dn.0), self.apply(si.dn.1)),
+            shading: sd,
+            ..si
+        }
+    } 
 }
 
 #[cfg(test)]
